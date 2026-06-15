@@ -1,6 +1,6 @@
 # ImageHosting
 
-基于 ThinkPHP 8 的私人图床系统，提供后台登录、图片上传、图片列表、公开访问链接、缩略图和指定尺寸图片输出。
+基于 `ThinkPHP 8` + `Naive UI` 的图床系统，提供后台登录、图片上传、图片列表、公开访问链接、缩略图和指定尺寸图片输出。
 
 ## 项目结构
 
@@ -47,7 +47,7 @@ npm install
 npm run build
 ```
 
-复制并配置 `.env`，确保数据库连接可用。然后导入数据库结构：
+根据 `.env.example` 内容配置 `.env`，确保数据库连接可用。然后导入数据库结构：
 
 ```bash
 mysql -u 用户名 -p 数据库名 < database/schema.sql
@@ -56,10 +56,10 @@ mysql -u 用户名 -p 数据库名 < database/schema.sql
 生成管理员密码 hash：
 
 ```bash
-php -r "echo password_hash('你的密码', PASSWORD_DEFAULT);"
+php -r 'echo password_hash("你的密码", PASSWORD_DEFAULT);'
 ```
 
-把生成结果写入 `config` 表的 `admin.password_hash`。
+把生成结果写入 `config` 表中的 `admin.password_hash`。
 
 ## 运行
 
@@ -69,7 +69,7 @@ php -r "echo password_hash('你的密码', PASSWORD_DEFAULT);"
 php think run
 ```
 
-生产环境请将运行目录指向当前工程 `public` 目录。
+#### 生产环境请将 `运行目录` 指向当前工程 `public` 目录。
 
 ## 前端工程
 
@@ -91,6 +91,8 @@ npm run build
 - `index.html` 复制到 `view/index.html`
 
 后端首页路由 `/` 会渲染 `view/index.html`，因此发布前端更新后需要重新执行 `npm run build`。
+
+构建前请手动删除 `/public/assets/web` 文件夹。
 
 ## 配置项
 
