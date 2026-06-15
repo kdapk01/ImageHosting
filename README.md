@@ -239,3 +239,7 @@ upload/_cache/{width}x{height}/{uid}.{extension}
 - SVG 会拒绝脚本、事件属性、`javascript:`、`foreignObject` 等危险内容。
 - 位图会通过 GD 重新编码，减少直接保存原始文件带来的风险。
 - 大尺寸图片会在 GD 解码前做内存预估，超过可安全处理范围会返回错误。
+
+## 常见问题
+
+ - 图片外链并非真实文件路径，所以请不要在 Nginx 中设置防盗链配置。
