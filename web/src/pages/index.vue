@@ -96,15 +96,15 @@ const accountOptions = [
  * DataTable 表头信息
  */
 const tableColumns: DataTableColumns<ImageItem> = [
-  { title: 'ID', key: 'id', width: 50 },
+  { title: 'ID', key: 'id', width: '5vw' },
   {
     title: '图像',
     key: 'url',
-    width: 180,
+    width: '15vw',
     render(row) {
       return h(NImage, {
-        width: 140,
-        height: 88,
+        height: '100px',
+        width: '100%',
         objectFit: 'contain',
         lazy: true,
         src: thumbUrl(row.url),
@@ -116,13 +116,13 @@ const tableColumns: DataTableColumns<ImageItem> = [
   {
     title: '原始名称',
     key: 'original_name',
-    width: 180,
+    width: '20vw',
     ellipsis: { tooltip: true }
   },
   {
     title: '尺寸',
     key: 'dimensions',
-    width: 120,
+    width: '10vw',
     render(row) {
       return row.width && row.height ? `${row.width} x ${row.height}` : '-'
     }
@@ -130,7 +130,7 @@ const tableColumns: DataTableColumns<ImageItem> = [
   {
     title: '大小',
     key: 'size_kb',
-    width: 100,
+    width: '10vw',
     render(row) {
       return `${row.size_kb} KB`
     }
@@ -138,17 +138,18 @@ const tableColumns: DataTableColumns<ImageItem> = [
   {
     title: '链接',
     key: 'url',
+    width: '10vw',
     ellipsis: { tooltip: true }
   },
   {
     title: '上传时间',
     key: 'created_at',
-    width: 170
+    width: '10vw'
   },
   {
     title: '操作',
     key: 'actions',
-    width: 220,
+    width: '20vw',
     render(row) {
       return h(NFlex, { size: 8 }, () => [
         h(
@@ -407,8 +408,11 @@ onMounted(fetchImages)
 
     <n-layout-content content-style="padding: 24px;">
       <template v-if="isLogin">
-        <n-flex justify="space-between" align="center" class="toolbar">
-          <n-flex align="center">
+        <!-- 工具栏 -->
+        <n-flex justify="end" class="toolbar">
+
+          <!-- 搜索 -->
+          <n-flex>
             <n-input v-model:value="keyword" clearable placeholder="搜索原始名称、UID" class="search-input"
               @keyup.enter="search" />
             <n-date-picker v-model:value="archiveMonth" type="month" clearable placeholder="按月份筛选"
@@ -423,8 +427,9 @@ onMounted(fetchImages)
             </n-button>
           </n-flex>
 
+          <!-- 上传按钮 -->
           <n-upload :show-file-list="false" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-            :custom-request="uploadImage">
+            :custom-request="uploadImage" style="width: auto;">
             <n-button type="primary" :loading="is_upload_loading">
               <template #icon>
                 <n-icon>
