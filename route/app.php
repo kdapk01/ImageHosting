@@ -12,7 +12,11 @@ use think\facade\Route;
 
 Route::get('/', 'Index/index');
 
-Route::post('api/admin/login', 'Admin/login');
+Route::post('api/admin/login', 'Admin/login')
+    ->middleware(\think\middleware\Throttle::class, [
+        'visit_rate' => '5/m',
+        'key' => '__IP__',
+    ]);
 
 Route::group(function () {
     Route::get('api/admin/me', 'Admin/me');
@@ -24,9 +28,10 @@ Route::group(function () {
 
 Route::get('api/images/:id', 'Img/read')->pattern(['id' => '\d+']);
 
-Route::get('i/:year/:month/:file/thumb', 'Img/thumb')
+Route::get('i/:year/:month/:file', 'Img/show')
     ->pattern(['year' => '\d{4}', 'month' => '\d{2}']);
 Route::get('i/:year/:month/:file/:width/:height', 'Img/show')
     ->pattern(['year' => '\d{4}', 'month' => '\d{2}', 'width' => '\d+', 'height' => '\d+']);
-Route::get('i/:year/:month/:file', 'Img/show')
+
+Route::get('i/:year/:month/:file/thumb', 'Img/thumb')
     ->pattern(['year' => '\d{4}', 'month' => '\d{2}']);
