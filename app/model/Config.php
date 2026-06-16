@@ -25,6 +25,39 @@ class Config extends Model
     }
 
     /**
+     * 批量写入配置值
+     * @param array<string, string> $items 配置项
+     * @return void
+     */
+    public static function setValues(array $items): void
+    {
+        if ($items === []) {
+            return;
+        }
+
+        $existing = [];
+        foreach (self::whereIn('config_key', array_keys($items))->select()->toArray() as $row) {
+            $existing[(string) $row['config_key']] = $row;
+        }
+
+        $rows = [];
+        foreach ($items as $key => $item) {
+            $row = [
+                'config_key' => $key,
+                'config_value' => $item,
+            ];
+
+            if (isset($existing[$key])) {
+                $row['id'] = (int) $existing[$key]['id'];
+            }
+
+            $rows[] = $row;
+        }
+
+        (new self())->saveAll($rows);
+    }
+
+    /**
      * 获取管理员登录配置
      * @return array{username: string, password_hash: string}|null
      */

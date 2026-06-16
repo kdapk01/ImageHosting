@@ -20,6 +20,9 @@ Route::post('api/admin/login', 'Admin/login')
 
 Route::group(function () {
     Route::get('api/admin/me', 'Admin/me');
+    Route::get('api/admin/settings', 'Admin/settings');
+    Route::post('api/admin/settings', 'Admin/updateSettings');
+    Route::post('api/admin/favicon', 'Admin/uploadFavicon');
     Route::post('api/admin/logout', 'Admin/logout');
     Route::get('api/images', 'Img/get_list');
     Route::post('api/images', 'Img/upload');

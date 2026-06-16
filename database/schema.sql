@@ -17,6 +17,10 @@ VALUES ('admin.password_hash', '', '管理员密码 hash，使用 PHP password_h
 ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
 
 INSERT INTO `config` (`config_key`, `config_value`, `description`)
+VALUES ('site.title', 'ImageHosting', '网站标题')
+ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
+
+INSERT INTO `config` (`config_key`, `config_value`, `description`)
 VALUES ('upload.allowed_mimes', '{"image/jpeg":"jpg","image/png":"png","image/gif":"gif","image/webp":"webp","image/svg+xml":"svg"}', '允许上传的图片 MIME 与扩展名映射 JSON')
 ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
 

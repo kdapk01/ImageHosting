@@ -1,12 +1,19 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import Cookies from "js-cookie";
 
-import page_index from "./pages/index.vue";
-
 Cookies.remove("token");
 
 const routes = [
-  { path: "/", component: page_index, meta: { requiresAuth: true } },
+  {
+    path: "/",
+    component: () => import("./pages/index.vue"),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/admin/settings",
+    component: () => import("./pages/admin/settings.vue"),
+    meta: { requiresAuth: true },
+  },
   { path: "/login", component: () => import("./pages/account/login.vue") },
   { path: "/:pathMatch(.*)*", redirect: "/" },
 ];
@@ -37,6 +44,10 @@ router.beforeEach(async (to) => {
   }
 });
 
+/**
+ * 校验当前管理员 Session 是否有效
+ * @returns 是否已登录
+ */
 async function checkSession() {
   try {
     const response = await fetch("/api/admin/me", {

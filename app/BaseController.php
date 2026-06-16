@@ -40,11 +40,21 @@ abstract class BaseController
         $this->initialize();
     }
 
-    // 初始化
+    /**
+     * 控制器初始化钩子
+     * @return void
+     */
     protected function initialize()
     {
     }
 
+    /**
+     * 返回成功 JSON 响应
+     * @param array $data 响应数据
+     * @param string $message 语言包消息键
+     * @param array $vars 语言包变量
+     * @return Response
+     */
     protected function ok(array $data = [], string $message = 'ok', array $vars = []): Response
     {
         return json([
@@ -54,6 +64,14 @@ abstract class BaseController
         ]);
     }
 
+    /**
+     * 返回失败 JSON 响应
+     * @param string $message 语言包消息键
+     * @param int $status HTTP 状态码
+     * @param int $code 业务错误码
+     * @param array $vars 语言包变量
+     * @return Response
+     */
     protected function fail(string $message, int $status = 400, int $code = 1, array $vars = []): Response
     {
         return json([
@@ -63,6 +81,12 @@ abstract class BaseController
         ], $status);
     }
 
+    /**
+     * 读取配置值，异常时返回默认值
+     * @param string $key 配置键
+     * @param string|null $default 默认值
+     * @return string|null
+     */
     protected function configValue(string $key, ?string $default = null): ?string
     {
         try {
@@ -74,6 +98,10 @@ abstract class BaseController
         return $value;
     }
 
+    /**
+     * 获取上传文件系统磁盘
+     * @return Driver
+     */
     protected function uploadDisk(): Driver
     {
         $disk = trim((string) $this->configValue('upload.disk', ''));
@@ -81,6 +109,11 @@ abstract class BaseController
         return Filesystem::disk($disk !== '' ? $disk : 'upload');
     }
 
+    /**
+     * 拼接上传存储相对路径
+     * @param string ...$segments 路径片段
+     * @return string
+     */
     protected function uploadStoragePath(string ...$segments): string
     {
         $paths = [];
@@ -99,11 +132,22 @@ abstract class BaseController
         return implode('/', $paths);
     }
 
+    /**
+     * 获取上传文件物理路径
+     * @param string $path 存储相对路径
+     * @return string
+     */
     protected function uploadPhysicalPath(string $path): string
     {
         return $this->uploadDisk()->path($path);
     }
 
+    /**
+     * 写入上传文件内容
+     * @param string $path 存储相对路径
+     * @param string $content 文件内容
+     * @return bool
+     */
     protected function uploadWrite(string $path, string $content): bool
     {
         try {
@@ -115,11 +159,22 @@ abstract class BaseController
         return true;
     }
 
+    /**
+     * 生成上传图片文件名
+     * @param string $uid 图片 UID
+     * @param string $extension 图片扩展名
+     * @return string
+     */
     protected function uploadImageName(string $uid, string $extension): string
     {
         return $uid . '.' . $extension;
     }
 
+    /**
+     * 获取图片原图存储路径
+     * @param array $row 图片记录
+     * @return string
+     */
     protected function uploadImagePath(array $row): string
     {
         return $this->uploadStoragePath(
@@ -129,6 +184,11 @@ abstract class BaseController
         );
     }
 
+    /**
+     * 获取图片缩略图存储路径
+     * @param array $row 图片记录
+     * @return string
+     */
     protected function uploadThumbnailPath(array $row): string
     {
         return $this->uploadStoragePath(
@@ -138,6 +198,11 @@ abstract class BaseController
         );
     }
 
+    /**
+     * 转换图片记录为 API 响应数组
+     * @param array $row 图片记录
+     * @return array
+     */
     protected function uploadImageApiArray(array $row): array
     {
         $name = $this->uploadImageName((string) $row['uid'], (string) $row['extension']);
@@ -167,6 +232,11 @@ abstract class BaseController
         ];
     }
 
+    /**
+     * 标准化存储路径，移除空片段和危险片段
+     * @param string $path 原始路径
+     * @return string
+     */
     protected function normalizeStoragePath(string $path): string
     {
         $path = str_replace('\\', '/', trim($path));
@@ -178,6 +248,12 @@ abstract class BaseController
         return implode('/', $parts);
     }
 
+    /**
+     * 翻译语言包键
+     * @param string $name 语言包键
+     * @param array $vars 语言包变量
+     * @return string
+     */
     protected function trans(string $name, array $vars = []): string
     {
         $value = lang($name, $vars);
