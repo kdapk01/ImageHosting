@@ -24,6 +24,10 @@ const formModel = ref({
   password: ''
 })
 
+/**
+ * 提交登录表单
+ * @param e 鼠标事件
+ */
 async function login(e: MouseEvent) {
   e.preventDefault()
   if (isLoading.value) return

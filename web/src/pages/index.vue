@@ -1,24 +1,17 @@
 <script setup lang="ts">
 import { computed, h, onMounted, reactive, ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import {
   NButton,
   NDataTable,
   NDatePicker,
-  NDropdown,
   NFlex,
   NIcon,
   NImage,
   NInput,
-  NLayout,
-  NLayoutContent,
-  NLayoutFooter,
-  NLayoutHeader,
   NList,
   NListItem,
   NModal,
-  NPageHeader,
-  NText,
   NUpload,
   useDialog,
   useMessage
@@ -26,6 +19,7 @@ import {
 import type { DataTableColumns, UploadCustomRequestOptions } from 'naive-ui'
 import { ClipboardOutline, CloudUploadOutline, SearchOutline, TrashOutline } from '@vicons/ionicons5'
 import Cookies from 'js-cookie'
+import AppLayout from '../components/AppLayout.vue'
 
 interface ImageItem {
   id: number
@@ -49,6 +43,7 @@ const router = useRouter()
 
 const username = ref(Cookies.get('username'))
 const isLogin = computed(() => Boolean(username.value))
+const siteTitle = ref('ImageHosting')
 
 const loading = ref(false)
 const is_upload_loading = ref(false)
@@ -77,20 +72,6 @@ const pagination = reactive({
     fetchImages()
   }
 })
-
-/**
- * 账户按钮下拉选项
- */
-const accountOptions = [
-  {
-    label: '退出登录',
-    key: 'logout',
-    props: {
-      style: 'color: red;',
-      onClick: logout
-    }
-  }
-]
 
 /**
  * DataTable 表头信息
@@ -209,6 +190,10 @@ async function apiFetch(url: string, init: RequestInit = {}) {
   return result.data
 }
 
+/**
+ * 生成归档筛选请求参数
+ * @returns 年月筛选参数
+ */
 function archiveParams(): Record<string, string> {
   if (!archiveMonth.value) return {}
   const date = new Date(archiveMonth.value)
@@ -239,6 +224,22 @@ async function fetchImages() {
     message.error(error instanceof Error ? error.message : '加载图片失败')
   } finally {
     loading.value = false
+  }
+}
+
+/**
+ * 请求系统设置并更新页面标题和 favicon
+ */
+async function fetchSettings() {
+  if (!isLogin.value) return
+
+  try {
+    const data = await apiFetch('/api/admin/settings')
+    siteTitle.value = data.site_title || 'ImageHosting'
+    refreshFaviconLink(data.favicon_url)
+    document.title = `首页-${siteTitle.value}`
+  } catch {
+    document.title = `首页-${siteTitle.value}`
   }
 }
 
@@ -327,19 +328,6 @@ function thumbUrl(url: string) {
 }
 
 /**
- * 登出
- */
-async function logout() {
-  try {
-    await apiFetch('/api/admin/logout', { method: 'POST' })
-  } catch {
-    // 本地退出即可。
-  } finally {
-    clearLogin()
-  }
-}
-
-/**
  * 登出的操作
  */
 function clearLogin() {
@@ -357,6 +345,10 @@ function search() {
   fetchImages()
 }
 
+/**
+ * 写入剪贴板，必要时使用 textarea 兜底
+ * @param text 要复制的文本
+ */
 async function writeClipboard(text: string) {
   if (navigator.clipboard?.writeText && window.isSecureContext) {
     await navigator.clipboard.writeText(text)
@@ -378,78 +370,76 @@ async function writeClipboard(text: string) {
   }
 }
 
+/**
+ * 移除当前焦点，避免弹窗后按钮保持聚焦
+ */
 function blurActiveElement() {
   const active = document.activeElement
   if (active instanceof HTMLElement) active.blur()
 }
 
-onMounted(fetchImages)
+/**
+ * 刷新页面 favicon 链接
+ * @param url favicon 地址
+ */
+function refreshFaviconLink(url: string) {
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+  if (!link) {
+    link = document.createElement('link')
+    link.rel = 'icon'
+    document.head.appendChild(link)
+  }
+  link.type = 'image/x-icon'
+  link.href = url || '/favicon.ico'
+}
+
+onMounted(() => {
+  document.title = `首页-${siteTitle.value}`
+  fetchSettings()
+  fetchImages()
+})
 </script>
 
 <template>
-  <n-layout class="page">
-    <n-layout-header bordered>
-      <n-page-header subtitle="图床" class="page-header">
-        <template #title>ImageHosting</template>
-        <template #extra>
-          <template v-if="isLogin">
-            <n-dropdown :options="accountOptions" placement="bottom-start">
-              <n-button :bordered="false">{{ username }}</n-button>
-            </n-dropdown>
-          </template>
-          <template v-else>
-            <RouterLink to="/login">
-              <n-button>登录</n-button>
-            </RouterLink>
-          </template>
-        </template>
-      </n-page-header>
-    </n-layout-header>
+  <AppLayout :title="siteTitle" subtitle="图床">
+    <template v-if="isLogin">
+      <!-- 工具栏 -->
+      <n-flex justify="end" class="toolbar">
 
-    <n-layout-content content-style="padding: 24px;">
-      <template v-if="isLogin">
-        <!-- 工具栏 -->
-        <n-flex justify="end" class="toolbar">
-
-          <!-- 搜索 -->
-          <n-flex>
-            <n-input v-model:value="keyword" clearable placeholder="搜索原始名称、UID" class="search-input"
-              @keyup.enter="search" />
-            <n-date-picker v-model:value="archiveMonth" type="month" clearable placeholder="按月份筛选"
-              @update:value="search" />
-            <n-button secondary @click="search">
-              <template #icon>
-                <n-icon>
-                  <SearchOutline />
-                </n-icon>
-              </template>
-              搜索
-            </n-button>
-          </n-flex>
-
-          <!-- 上传按钮 -->
-          <n-upload :show-file-list="false" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
-            :custom-request="uploadImage" style="width: auto;">
-            <n-button type="primary" :loading="is_upload_loading">
-              <template #icon>
-                <n-icon>
-                  <CloudUploadOutline />
-                </n-icon>
-              </template>
-              上传
-            </n-button>
-          </n-upload>
+        <!-- 搜索 -->
+        <n-flex>
+          <n-input v-model:value="keyword" clearable placeholder="搜索原始名称、UID" class="search-input"
+            @keyup.enter="search" />
+          <n-date-picker v-model:value="archiveMonth" type="month" clearable placeholder="按月份筛选"
+            @update:value="search" />
+          <n-button secondary @click="search">
+            <template #icon>
+              <n-icon>
+                <SearchOutline />
+              </n-icon>
+            </template>
+            搜索
+          </n-button>
         </n-flex>
 
-        <n-data-table remote :columns="tableColumns" :data="tableData" :pagination="pagination" :loading="loading"
-          class="image-table" />
-      </template>
-    </n-layout-content>
+        <!-- 上传按钮 -->
+        <n-upload :show-file-list="false" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+          :custom-request="uploadImage" style="width: auto;">
+          <n-button type="primary" :loading="is_upload_loading" :disabled="is_upload_loading">
+            <template #icon>
+              <n-icon>
+                <CloudUploadOutline />
+              </n-icon>
+            </template>
+            上传
+          </n-button>
+        </n-upload>
+      </n-flex>
 
-    <n-layout-footer class="footer">
-      <n-text depth="3">@kdapk01</n-text>
-    </n-layout-footer>
-  </n-layout>
+      <n-data-table remote :columns="tableColumns" :data="tableData" :pagination="pagination" :loading="loading"
+        class="image-table" />
+    </template>
+  </AppLayout>
 
   <n-modal v-model:show="isInfoModalVisible" preset="card" title="详细信息" :style="{ width: '80vw', maxWidth: '960px' }"
     :bordered="false">
@@ -468,16 +458,6 @@ onMounted(fetchImages)
 </template>
 
 <style scoped>
-.page {
-  min-height: 100vh;
-  background: #f6f8fb;
-}
-
-.page-header {
-  padding: 16px 24px;
-  background: #fff;
-}
-
 .toolbar {
   margin-bottom: 12px;
 }
@@ -490,8 +470,4 @@ onMounted(fetchImages)
   background: #fff;
 }
 
-.footer {
-  padding: 16px;
-  text-align: center;
-}
 </style>

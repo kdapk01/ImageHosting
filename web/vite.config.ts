@@ -7,6 +7,66 @@ export default defineConfig({
   base: "/assets/web/",
   build: {
     assetsDir: "",
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+
+          if (id.includes("node_modules/vue") || id.includes("node_modules/@vue")) {
+            return "vendor-vue";
+          }
+
+          if (id.includes("node_modules/naive-ui")) {
+            if (id.includes("node_modules/naive-ui/es/data-table")) {
+              return "vendor-naive-table";
+            }
+
+            if (
+              id.includes("node_modules/naive-ui/es/form")
+              || id.includes("node_modules/naive-ui/es/input")
+              || id.includes("node_modules/naive-ui/es/input-number")
+              || id.includes("node_modules/naive-ui/es/date-picker")
+              || id.includes("node_modules/naive-ui/es/upload")
+              || id.includes("node_modules/naive-ui/es/switch")
+            ) {
+              return "vendor-naive-form";
+            }
+
+            if (
+              id.includes("node_modules/naive-ui/es/modal")
+              || id.includes("node_modules/naive-ui/es/dialog")
+              || id.includes("node_modules/naive-ui/es/message")
+              || id.includes("node_modules/naive-ui/es/dropdown")
+              || id.includes("node_modules/naive-ui/es/image")
+              || id.includes("node_modules/naive-ui/es/spin")
+            ) {
+              return "vendor-naive-feedback";
+            }
+
+            if (
+              id.includes("node_modules/naive-ui/es/layout")
+              || id.includes("node_modules/naive-ui/es/page-header")
+              || id.includes("node_modules/naive-ui/es/card")
+              || id.includes("node_modules/naive-ui/es/button")
+              || id.includes("node_modules/naive-ui/es/flex")
+              || id.includes("node_modules/naive-ui/es/icon")
+              || id.includes("node_modules/naive-ui/es/text")
+              || id.includes("node_modules/naive-ui/es/list")
+            ) {
+              return "vendor-naive-layout";
+            }
+
+            return "vendor-naive-core";
+          }
+
+          if (id.includes("node_modules/@vicons")) {
+            return "vendor-icons";
+          }
+
+          return "vendor";
+        },
+      },
+    },
   },
   plugins: [
     vue(),

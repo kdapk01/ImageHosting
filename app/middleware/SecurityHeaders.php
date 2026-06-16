@@ -12,6 +12,12 @@ use think\Response;
  */
 class SecurityHeaders
 {
+    /**
+     * 给响应添加安全标头
+     * @param Request $request 当前请求
+     * @param Closure $next 后续处理器
+     * @return Response
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $response = $next($request);
