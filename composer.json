@@ -27,8 +27,7 @@
         "topthink/think-throttle": "^3.0"
     },
     "require-dev": {
-        "topthink/think-dumper": "^1.0",
-        "topthink/think-trace": "^2.0"
+        "topthink/think-dumper": "^1.0"
     },
     "autoload": {
         "psr-4": {
