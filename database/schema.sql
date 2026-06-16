@@ -32,6 +32,26 @@ INSERT INTO `config` (`config_key`, `config_value`, `description`)
 VALUES ('upload.path', '', '上传文件在磁盘内的存储路径前缀，留空表示磁盘根目录')
 ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
 
+INSERT INTO `config` (`config_key`, `config_value`, `description`)
+VALUES ('hotlink.enabled', '0', '是否开启图片防盗链，1开启，0关闭')
+ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
+
+INSERT INTO `config` (`config_key`, `config_value`, `description`)
+VALUES ('hotlink.allow_empty_referer', '1', '是否允许空HTTP_REFERER请求，1允许，0拒绝')
+ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
+
+INSERT INTO `config` (`config_key`, `config_value`, `description`)
+VALUES ('hotlink.extensions', 'jpg,jpeg,png,gif,webp,svg', '启用防盗链的URL后缀，支持逗号/换行分隔或JSON数组')
+ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
+
+INSERT INTO `config` (`config_key`, `config_value`, `description`)
+VALUES ('hotlink.allowed_domains', '', '防盗链许可域名，支持逗号/换行分隔或JSON数组，子域名可写*.example.com')
+ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
+
+INSERT INTO `config` (`config_key`, `config_value`, `description`)
+VALUES ('hotlink.deny_status', '403', '防盗链拒绝请求时返回的HTTP状态码，如403或404')
+ON DUPLICATE KEY UPDATE `config_key` = `config_key`;
+
 CREATE TABLE IF NOT EXISTS `images` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `uid` varchar(16) NOT NULL,

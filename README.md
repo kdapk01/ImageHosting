@@ -106,6 +106,11 @@ npm run build
 | `upload.max_size`      | `1M`     | 单个上传文件大小限制         |
 | `upload.disk`          | `upload` | ThinkPHP Filesystem 磁盘名称 |
 | `upload.path`          | 空       | 磁盘内存储路径前缀           |
+| `hotlink.enabled`      | `0`      | 是否开启图片防盗链           |
+| `hotlink.allow_empty_referer` | `1` | 是否允许空 `HTTP_REFERER` 请求 |
+| `hotlink.extensions`   | `jpg,jpeg,png,gif,webp,svg` | 启用防盗链的 URL 后缀 |
+| `hotlink.allowed_domains` | 空    | 许可来源域名                 |
+| `hotlink.deny_status`  | `403`    | 拒绝盗链时返回的 HTTP 状态码 |
 
 Filesystem 磁盘在 `config/filesystem.php` 中配置。默认本地磁盘：
 
@@ -119,6 +124,32 @@ Filesystem 磁盘在 `config/filesystem.php` 中配置。默认本地磁盘：
 ```
 
 公开访问 URL 优先由 `Filesystem::disk(...)->url($path)` 生成，因此本地 URL 前缀和第三方存储外链都应在 filesystem 磁盘配置中处理。
+
+## 防盗链配置
+
+图片公开访问接口会在应用层检查 `HTTP_REFERER`。开启方式：
+
+```sql
+UPDATE `config`
+SET `config_value` = '1'
+WHERE `config_key` = 'hotlink.enabled';
+```
+
+许可域名支持逗号、换行分隔或 JSON 数组：
+
+```sql
+UPDATE `config`
+SET `config_value` = 'example.com,*.example.com'
+WHERE `config_key` = 'hotlink.allowed_domains';
+```
+
+规则说明：
+
+- `hotlink.enabled=0` 时不检查防盗链。
+- 当前访问域名会自动放行；`hotlink.allowed_domains` 用于额外放行其他来源域名。
+- `hotlink.allow_empty_referer=1` 时允许浏览器直接打开图片、无来源请求、部分隐私策略请求。
+- `hotlink.extensions` 只对指定 URL 后缀生效，支持 `jpg,png` 或 `["jpg","png"]`。
+- `hotlink.deny_status` 支持 `400` 到 `599`，常用 `403` 或 `404`，配置非法时回退到 `403`。
 
 ## 上传限制说明
 
@@ -242,4 +273,4 @@ upload/_cache/{width}x{height}/{uid}.{extension}
 
 ## 常见问题
 
- - 图片外链并非真实文件路径，所以请不要在 Nginx 中设置防盗链配置。
+ - 图片外链并非真实文件路径，所以请不要在 Nginx 中设置防盗链配置，本系统支持应用层的防盗链。

@@ -297,6 +297,9 @@ class Img extends BaseController
         $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         $uid = pathinfo($name, PATHINFO_FILENAME);
 
+        // 防盗链
+        $this->abortHotlinkRequest($extension);
+
         $row = model_images::findPublic($year, $month, $uid, $extension);
 
         if (!$row) {
@@ -318,6 +321,96 @@ class Img extends BaseController
         }
 
         return download($path, basename($path), false, 86400 * 30)->force(false);
+    }
+
+    /**
+     * 根据HTTP_REFERER执行图片防盗链校验
+     * @param string $extension 请求图片后缀
+     * @return void
+     */
+    private function abortHotlinkRequest(string $extension): void
+    {
+        $config = model_config::hotlinkProtection();
+        if (!$config['enabled']) {
+            return;
+        }
+
+        if ($config['extensions'] && !\in_array(strtolower($extension), $config['extensions'], true)) {
+            return;
+        }
+
+        $referer = trim((string) $this->request->server('HTTP_REFERER', ''));
+        if ($referer === '') {
+            if ($config['allow_empty_referer']) {
+                return;
+            }
+
+            abort($config['deny_status']);
+        }
+
+        $host = parse_url($referer, PHP_URL_HOST);
+        if (!\is_string($host) || $host === '') {
+            abort($config['deny_status']);
+        }
+
+        $host = $this->normalizeHost($host);
+        $currentHost = $this->normalizeHost((string) $this->request->server('HTTP_HOST', ''));
+        if ($currentHost !== '' && $host === $currentHost) {
+            return;
+        }
+
+        foreach ($config['allowed_domains'] as $domain) {
+            if ($this->domainMatches($host, $domain)) {
+                return;
+            }
+        }
+
+        abort($config['deny_status']);
+    }
+
+    /**
+     * 判断来源域名是否命中许可域名，支持 example.com 和 *.example.com
+     * @param string $host 来源域名
+     * @param string $domain 许可域名
+     * @return bool
+     */
+    private function domainMatches(string $host, string $domain): bool
+    {
+        $domain = $this->normalizeHost($domain);
+        if ($domain === '') {
+            return false;
+        }
+
+        if (str_starts_with($domain, '*.')) {
+            $suffix = substr($domain, 1);
+
+            return str_ends_with($host, $suffix) && $host !== ltrim($suffix, '.');
+        }
+
+        return $host === $domain;
+    }
+
+    /**
+     * 标准化域名，去除协议和端口
+     * @param string $host 域名配置或请求Host
+     * @return string
+     */
+    private function normalizeHost(string $host): string
+    {
+        $host = strtolower(trim($host));
+        if ($host === '') {
+            return '';
+        }
+
+        if (str_contains($host, '://')) {
+            $parsed = parse_url($host, PHP_URL_HOST);
+
+            return \is_string($parsed) ? strtolower($parsed) : '';
+        }
+
+        $host = preg_replace('/:\d+$/', '', $host) ?: '';
+
+        return trim($host, '.');
     }
 
     /**
