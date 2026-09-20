@@ -10,6 +10,7 @@ use think\Exception;
 use think\file\UploadedFile;
 use think\Response;
 use enshrined\svgSanitize\Sanitizer;
+use think\facade\Log;
 
 class Img extends BaseController
 {
@@ -453,16 +454,11 @@ class Img extends BaseController
                 return false;
             }
 
-            // 正则匹配标签和属性
-            $dangerous = '/<script\b|on[a-z]+\s*=|javascript:|data:text\/html|<foreignObject\b|<iframe\b|<object\b|<embed\b/i';
-            if (preg_match($dangerous, $content)) {
-                return false;
-            }
-
-            // 使用svg-sanitizer库进行进一步净化
+            // 使用svg-sanitizer库净化
             $sanitizer = new Sanitizer();
             $content = $sanitizer->sanitize($content);
             if ($content === false) {
+                Log::warning('3');
                 return false;
             }
 
