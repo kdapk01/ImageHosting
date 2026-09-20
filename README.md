@@ -63,8 +63,7 @@ php -r 'echo password_hash("你的密码", PASSWORD_DEFAULT);'
 
 ## Web 服务器配置
 
-- Nginx 示例：`location ~* /uploads/.*\.(php|phtml|phar)$ { deny all; }`
-- Apache 示例（在 `.htaccess` 中）：`RemoveHandler .php .phtml` 或 `SetHandler None`
+- 请将 `运行目录` 指向当前工程 `public` 目录。
 
 ## 运行
 
