@@ -470,6 +470,18 @@ class Img extends BaseController
             return $this->uploadWrite($target, $content);
         }
 
+        // 单独处理gif文件
+        if ($extension === 'gif') {
+            // 解码校验
+            $probe = imagecreatefromgif($source);
+            if (!$probe) {
+                return false;
+            }
+            unset($probe);
+
+            return $this->uploadWrite($target, (string) file_get_contents($source));
+        }
+
         // 通用存储，位图使用GD重新编码后写入存储磁盘
         $image = match ($extension) {
             'jpg' => imagecreatefromjpeg($source),
