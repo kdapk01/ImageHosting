@@ -8,6 +8,7 @@ use think\App;
 use think\facade\Filesystem;
 use think\filesystem\Driver;
 use think\Response;
+use think\facade\Log;
 
 /**
  * 控制器基础类
@@ -109,6 +110,7 @@ abstract class BaseController
         try {
             return Filesystem::disk($disk);
         } catch (\Throwable) {
+            Log::warning("上传盘不存在：$disk");
             // 使用 config/filesystem.php 配置的默认磁盘
             return Filesystem::disk(null);
         }
