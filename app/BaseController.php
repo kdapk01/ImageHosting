@@ -106,7 +106,12 @@ abstract class BaseController
     {
         $disk = trim((string) $this->configValue('upload.disk', ''));
 
-        return Filesystem::disk($disk !== '' ? $disk : 'upload');
+        try {
+            return Filesystem::disk($disk);
+        } catch (\Throwable) {
+            // 使用 config/filesystem.php 配置的默认磁盘
+            return Filesystem::disk(null);
+        }
     }
 
     /**
@@ -242,7 +247,7 @@ abstract class BaseController
         $path = str_replace('\\', '/', trim($path));
         $parts = array_filter(
             explode('/', $path),
-            static fn (string $part): bool => $part !== '' && $part !== '.' && $part !== '..'
+            static fn(string $part): bool => $part !== '' && $part !== '.' && $part !== '..'
         );
 
         return implode('/', $parts);
