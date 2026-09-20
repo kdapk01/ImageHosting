@@ -61,6 +61,11 @@ php -r 'echo password_hash("你的密码", PASSWORD_DEFAULT);'
 
 把生成结果写入 `config` 表中的 `admin.password_hash`。
 
+## Web 服务器配置
+
+- Nginx 示例：`location ~* /uploads/.*\.(php|phtml|phar)$ { deny all; }`
+- Apache 示例（在 `.htaccess` 中）：`RemoveHandler .php .phtml` 或 `SetHandler None`
+
 ## 运行
 
 开发环境可使用 ThinkPHP 内置服务：
