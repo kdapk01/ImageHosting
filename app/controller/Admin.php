@@ -43,6 +43,10 @@ class Admin extends BaseController
         if ($username !== $admin['username'] || !password_verify($password, $admin['password_hash'])) {
             return $this->fail('auth.invalid_credentials', 401);
         }
+        
+        // 销毁当前 Session 数据实现 regenerate
+        Session::clear();
+        Session::destroy();
 
         // 设置session
         Session::set('admin', [
