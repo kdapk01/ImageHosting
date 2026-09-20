@@ -47,8 +47,6 @@ class Img extends BaseController
         $maxUploadSize = !empty($maxUploadSize) ? $maxUploadSize : '1M';
         $maxUploadBytes = $this->parseSizeToBytes($maxUploadSize);
         $maxUploadLabel = $this->formatUploadSize($maxUploadSize);
-        ini_set('upload_max_filesize', $maxUploadSize);
-        ini_set('post_max_size', $maxUploadSize);
 
         $contentLength = (int) $this->request->server('CONTENT_LENGTH', '0');
         if ($contentLength > 0 && $contentLength > $maxUploadBytes) {
