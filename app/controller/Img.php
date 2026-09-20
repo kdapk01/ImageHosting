@@ -9,6 +9,7 @@ use app\model\Images as model_images;
 use think\Exception;
 use think\file\UploadedFile;
 use think\Response;
+use enshrined\svgSanitize\Sanitizer;
 
 class Img extends BaseController
 {
@@ -440,7 +441,6 @@ class Img extends BaseController
 
     /**
      * 净化文件并存储
-     * SVG执行文本安全检查，位图使用GD重新编码后写入存储磁盘
      * @param string $source 上传临时文件路径
      * @param string $target 存储磁盘内的目标路径
      * @param string $extension 目标扩展名
@@ -448,22 +448,31 @@ class Img extends BaseController
      */
     private function sanitizeAndSave(string $source, string $target, string $extension): bool
     {
-        // 单独存储SVG文件
+        // 执行SVG安全检查
         if ($extension === 'svg') {
             $content = file_get_contents($source);
             if ($content === false || stripos($content, '<svg') === false) {
                 return false;
             }
 
+            // 正则匹配标签和属性
             $dangerous = '/<script\b|on[a-z]+\s*=|javascript:|data:text\/html|<foreignObject\b|<iframe\b|<object\b|<embed\b/i';
             if (preg_match($dangerous, $content)) {
                 return false;
             }
 
+            // 使用svg-sanitizer库进行进一步净化
+            $sanitizer = new Sanitizer();
+            $content = $sanitizer->sanitize($content);
+            if ($content === false) {
+                return false;
+            }
+
+            // 单独存储SVG文件
             return $this->uploadWrite($target, $content);
         }
 
-        // 通用存储
+        // 通用存储，位图使用GD重新编码后写入存储磁盘
         $image = match ($extension) {
             'jpg' => imagecreatefromjpeg($source),
             'png' => imagecreatefrompng($source),
@@ -489,7 +498,7 @@ class Img extends BaseController
         $content = ob_get_clean();
         unset($image);
 
-        return $result && is_string($content) && $this->uploadWrite($target, $content);
+        return $result && \is_string($content) && $this->uploadWrite($target, $content);
     }
 
     /**
